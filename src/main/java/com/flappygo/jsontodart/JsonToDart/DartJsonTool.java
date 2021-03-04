@@ -49,7 +49,7 @@ public class DartJsonTool {
 
         //转换为
         StringBuffer retBuffer = new StringBuffer();
-        for (int s = 0; s < filteredObjects.size(); s++) {
+        for (int s = filteredObjects.size() - 1; s >= 0; s--) {
             retBuffer.append(dartClassToString(filteredObjects.get(s)).toString());
         }
         //转换
