@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>JsonToDart</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="/TempletAdmin/layuiadmin/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="/TempletAdmin/layuiadmin/style/admin.css" media="all">
+    <script>
+        /^http(s*):\/\//.test(location.href) || alert('请先部署到 localhost 下再访问');
+    </script>
+</head>
+<body class="layui-layout-body">
+
+<!--主要界面-->
+
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-xs12 layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">请输入json</div>
+                <div class="layui-card-body layui-row layui-col-space10">
+                    <div class="layui-col-md12">
+                        <textarea rows="14" id="inputjson" name="inputjson" placeholder="请输入"
+                                  class="layui-textarea"></textarea>
+                    </div>
+                </div>
+                <div class="layui-card-body layui-row layui-col-space10">
+                    <div class="layui-col-md3">
+                        <input type="text" id="resultname" name="resultname" placeholder="请输入生成类名" autocomplete="off"
+                               class="layui-input">
+                    </div>
+                    <div class="layui-col-md6">
+                        <button name="formatbtn" id="formatbtn" class="layui-btn">格式化Json</button>
+                        <button name="generatebtn" id="generatebtn" class="layui-btn layui-btn-normal">生成Dart文件</button>
+                        <button name="generatebtn" id="copybtn" class="layui-btn layui-btn-normal">复制结果</button>
+                    </div>
+                </div>
+                <div class="layui-card-header">生成结果</div>
+                <div class="layui-card-body layui-row layui-col-space10">
+                    <div class="layui-col-md12">
+                        <textarea rows="18" id="resultdart" name="resultdart" placeholder="请输入"
+                                  class="layui-textarea"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="/TempletAdmin/layuiadmin/layui/layui.js"></script>
+<script>
+    /*<![CDATA[*/
+    layui.config({
+        base: '/TempletAdmin/layuiadmin/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'form', 'jquery'], function () {
+        var $ = layui.$
+            , admin = layui.admin
+            , element = layui.element
+            , layer = layui.layer
+            , form = layui.form;
+
+
+        //生成dart文件
+        $('#generatebtn').click(function () {
+
+            //取得json字符串
+            var jsonStr = $('#inputjson').val();
+
+            //取得名称
+            var className = $('#resultname').val();
+
+            //请求后台接口
+            $.ajax({
+                url: "api/jsonToDart",
+                type: 'post',
+                data: {jsonStr: jsonStr, className: className},
+                beforeSend: function () {
+                    this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
+                },
+                success: function (data) {
+                    $('#resultdart').val(data.data);
+                },
+                complete: function () {
+                    layer.close(this.layerIndex);
+                },
+            });
+        });
+
+
+        //格式化点击
+        $('#formatbtn').click(function () {
+
+            //获取json字符串
+            var jsonStr = $('#inputjson').val();
+
+            //请求后台接口
+            $.ajax({
+                url: "api/jsonToPretty",
+                type: 'post',
+                data: {jsonStr: jsonStr},
+                beforeSend: function () {
+                    //显示转圈圈
+                    this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
+                },
+                success: function (data) {
+                    if (data.code == 200) {
+                        $('#inputjson').val(data.data);
+                    } else {
+                        $('#resultdart').val(data.msg);
+                    }
+                },
+                complete: function () {
+                    //关闭转圈圈
+                    layer.close(this.layerIndex);
+                },
+            });
+        });
+
+
+        //格式化点击
+        $('#copybtn').click(function () {
+            $("#resultdart").select();
+            document.execCommand("Copy");
+            layer.msg('复制成功', {icon: 1});
+        });
+
+
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
