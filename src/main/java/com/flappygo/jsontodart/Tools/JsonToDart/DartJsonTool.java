@@ -1,4 +1,4 @@
-package com.flappygo.jsontodart.JsonToDart;
+package com.flappygo.jsontodart.Tools.JsonToDart;
 
 import org.apache.commons.text.CaseUtils;
 import org.json.JSONArray;

@@ -1,4 +1,4 @@
-package com.flappygo.jsontodart.JsonToDart;
+package com.flappygo.jsontodart.Tools.JsonToDart;
 
 import java.util.ArrayList;
 import java.util.List;

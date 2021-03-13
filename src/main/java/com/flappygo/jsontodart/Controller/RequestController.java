@@ -1,13 +1,14 @@
 package com.flappygo.jsontodart.Controller;
 
 
+import com.flappygo.jsontodart.Tools.UnicodeTool;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.flappygo.jsontodart.Controller.Base.BaseController;
 import org.springframework.web.bind.annotation.RequestParam;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.flappygo.jsontodart.JsonToDart.DartJsonTool;
+import com.flappygo.jsontodart.Tools.JsonToDart.DartJsonTool;
 import com.flappygo.jsontodart.Models.ResponseModel;
 import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSONObject;
@@ -98,5 +99,23 @@ public class RequestController extends BaseController {
         }
     }
 
+    //unicode编码
+    @RequestMapping(value = "/unicodeEncode", produces = "application/json; charset=utf-8")
+    public ResponseModel unicodeEncode(@RequestParam(value = "unicodeStr", defaultValue = "") String unicodeStr) {
+        try {
+            return getSuccessResult(UnicodeTool.gbEncoding(unicodeStr));
+        } catch (Exception ex) {
+            return getFailureResult(ex.getMessage());
+        }
+    }
 
+    //unicode解码
+    @RequestMapping(value = "/unicodeDecode", produces = "application/json; charset=utf-8")
+    public ResponseModel unicodeDecode(@RequestParam(value = "unicodeStr", defaultValue = "") String unicodeStr) {
+        try {
+            return getSuccessResult(UnicodeTool.decodeUnicode(unicodeStr));
+        } catch (Exception ex) {
+            return getFailureResult(ex.getMessage());
+        }
+    }
 }

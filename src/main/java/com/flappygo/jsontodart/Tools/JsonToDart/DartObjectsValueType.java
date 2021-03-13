@@ -1,4 +1,4 @@
-package com.flappygo.jsontodart.JsonToDart;
+package com.flappygo.jsontodart.Tools.JsonToDart;
 
 public enum DartObjectsValueType {
     //直接是字符串

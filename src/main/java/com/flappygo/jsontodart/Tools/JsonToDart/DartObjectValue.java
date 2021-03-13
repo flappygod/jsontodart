@@ -1,4 +1,4 @@
-package com.flappygo.jsontodart.JsonToDart;
+package com.flappygo.jsontodart.Tools.JsonToDart;
 
 
 //用于生成Dart Class的对象参数
