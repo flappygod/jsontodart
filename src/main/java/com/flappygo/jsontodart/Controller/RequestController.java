@@ -103,7 +103,7 @@ public class RequestController extends BaseController {
     @RequestMapping(value = "/unicodeEncode", produces = "application/json; charset=utf-8")
     public ResponseModel unicodeEncode(@RequestParam(value = "unicodeStr", defaultValue = "") String unicodeStr) {
         try {
-            return getSuccessResult(UnicodeTool.gbEncoding(unicodeStr));
+            return getSuccessResult(UnicodeTool.cnToUnicode(unicodeStr));
         } catch (Exception ex) {
             return getFailureResult(ex.getMessage());
         }
@@ -113,7 +113,7 @@ public class RequestController extends BaseController {
     @RequestMapping(value = "/unicodeDecode", produces = "application/json; charset=utf-8")
     public ResponseModel unicodeDecode(@RequestParam(value = "unicodeStr", defaultValue = "") String unicodeStr) {
         try {
-            return getSuccessResult(UnicodeTool.decodeUnicode(unicodeStr));
+            return getSuccessResult(UnicodeTool.unicodeToCn(unicodeStr));
         } catch (Exception ex) {
             return getFailureResult(ex.getMessage());
         }
