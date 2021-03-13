@@ -22,6 +22,23 @@ import java.net.URLEncoder;
 public class RequestController extends BaseController {
 
 
+    //美化json字符串
+    @RequestMapping(value = "/jsonToPretty", produces = "application/json; charset=utf-8")
+    public ResponseModel jsonToPretty(@RequestParam(value = "jsonStr", defaultValue = "") String jsonStr) {
+
+        if (StringUtils.isNotEmpty(jsonStr)) {
+            try {
+                JSONObject object = JSONObject.parseObject(jsonStr);
+                String pretty = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue, SerializerFeature.WriteDateUseDateFormat);
+                return getSuccessResult(pretty);
+            } catch (Exception ex) {
+                return getFailureResult(ex.getMessage());
+            }
+        }
+        return getFailureResult("Json字符串不能为空");
+
+    }
+
     //json转换为dart
     @RequestMapping(value = "/jsonToDart", produces = "application/json; charset=utf-8")
     public ResponseModel jsonToDart(@RequestParam(value = "jsonStr", defaultValue = "") String jsonStr,
@@ -43,51 +60,23 @@ public class RequestController extends BaseController {
 
     }
 
-
-    //美化json字符串
-    @RequestMapping(value = "/jsonToPretty", produces = "application/json; charset=utf-8")
-    public ResponseModel jsonToPretty(@RequestParam(value = "jsonStr", defaultValue = "") String jsonStr) {
-
-        if (StringUtils.isNotEmpty(jsonStr)) {
-            try {
-                JSONObject object = JSONObject.parseObject(jsonStr);
-                String pretty = JSON.toJSONString(object, SerializerFeature.PrettyFormat, SerializerFeature.WriteMapNullValue, SerializerFeature.WriteDateUseDateFormat);
-                return getSuccessResult(pretty);
-            } catch (Exception ex) {
-                return getFailureResult(ex.getMessage());
-            }
-        }
-        return getFailureResult("Json字符串不能为空");
-
-    }
-
-
     //Md5加密
     @RequestMapping(value = "/md5Generate", produces = "application/json; charset=utf-8")
     public ResponseModel md5Generate(@RequestParam(value = "md5Str", defaultValue = "") String md5Str) {
 
         try {
             JSONObject jsonObject = new JSONObject();
-
-            String md16Lower = DigestUtils.md5Hex(md5Str).toLowerCase().substring(8, 24);
-            String md16Upper = DigestUtils.md5Hex(md5Str).toUpperCase().substring(8, 24);
-
             String md32Lower = DigestUtils.md5Hex(md5Str).toLowerCase();
             String md32Upper = DigestUtils.md5Hex(md5Str).toUpperCase();
-
-            jsonObject.put("md16Lower", md16Lower);
-            jsonObject.put("md16Upper", md16Upper);
-
+            jsonObject.put("md16Lower", md32Lower.substring(8, 24));
+            jsonObject.put("md16Upper", md32Upper.substring(8, 24));
             jsonObject.put("md32Lower", md32Lower);
             jsonObject.put("md32Upper", md32Upper);
-
             return getSuccessResult(jsonObject.toJSONString());
         } catch (Exception ex) {
             return getFailureResult(ex.getMessage());
         }
-
     }
-
 
     //url编码
     @RequestMapping(value = "/urlEncode", produces = "application/json; charset=utf-8")
