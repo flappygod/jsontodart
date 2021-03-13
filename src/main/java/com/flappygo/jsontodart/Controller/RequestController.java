@@ -1,6 +1,7 @@
 package com.flappygo.jsontodart.Controller;
 
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.flappygo.jsontodart.Controller.Base.BaseController;
@@ -54,6 +55,33 @@ public class RequestController extends BaseController {
             }
         }
         return getFailureResult("Json字符串不能为空");
+
+    }
+
+
+    //Md5加密
+    @RequestMapping(value = "/md5Generate", produces = "application/json; charset=utf-8")
+    public ResponseModel md5Generate(@RequestParam(value = "md5Str", defaultValue = "") String md5Str) {
+
+        try {
+            JSONObject jsonObject = new JSONObject();
+
+            String md16Lower = DigestUtils.md5Hex(md5Str).toLowerCase().substring(8,24);
+            String md16Upper = DigestUtils.md5Hex(md5Str).toUpperCase().substring(8,24);
+
+            String md32Lower = DigestUtils.md5Hex(md5Str).toLowerCase();
+            String md32Upper = DigestUtils.md5Hex(md5Str).toUpperCase();
+
+            jsonObject.put("md16Lower", md16Lower);
+            jsonObject.put("md16Upper", md16Upper);
+
+            jsonObject.put("md32Lower", md32Lower);
+            jsonObject.put("md32Upper", md32Upper);
+
+            return getSuccessResult(jsonObject.toJSONString());
+        } catch (Exception ex) {
+            return getFailureResult(ex.getMessage());
+        }
 
     }
 
