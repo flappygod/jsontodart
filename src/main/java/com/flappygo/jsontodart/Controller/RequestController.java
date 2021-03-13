@@ -131,7 +131,7 @@ public class RequestController extends BaseController {
         try {
             String path = webConfig.getUploadFolder() + System.currentTimeMillis() + ".png";
             String retPath = webConfig.getStaticAccessPath() + System.currentTimeMillis() + ".png";
-            QrCodeGenerate.generateQRCodeImage(qrcodeStr, 500, 500, path);
+            QrCodeGenerate.generateQRCodeImage(qrcodeStr, 512, 512, path);
             return getSuccessResult(retPath);
         } catch (Exception ex) {
             return getFailureResult(ex.getMessage());
