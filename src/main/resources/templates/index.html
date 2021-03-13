@@ -33,7 +33,7 @@
             <ul class="layui-tab-title">
                 <li class="layui-this">Json转Dart</li>
                 <li>MD5加密</li>
-                <li>权限分配</li>
+                <li>URL编码/解码</li>
                 <li>商品管理</li>
                 <li>订单管理</li>
             </ul>
@@ -144,7 +144,28 @@
                     </div>
 
                 </div>
-                <div class="layui-tab-item">3</div>
+                <!--URL编码解码-->
+                <div class="layui-tab-item">
+
+
+                    <div class="layui-card-body layui-row layui-col-space10">
+                        <div class="layui-card-header layui-col-md12">编码/解码</div>
+                    </div>
+
+                    <div class="layui-card-body layui-row layui-col-space20">
+
+                        <div class="layui-col-md12">
+                            <button name="urlEncodeBtn" id="urlEncodeBtn" class="layui-btn">编码</button>
+                            <button name="urlDecodeBtn" id="urlDecodeBtn" class="layui-btn layui-btn-normal">解码</button>
+                        </div>
+
+                        <div class="layui-col-md12">
+                                    <textarea rows="32" id="urlInput" name="urlEncode" placeholder="请输入"
+                                              class="layui-textarea"></textarea>
+                        </div>
+                    </div>
+
+                </div>
                 <div class="layui-tab-item">4</div>
                 <div class="layui-tab-item">5</div>
             </div>
@@ -172,7 +193,10 @@
             , layer = layui.layer
             , form = layui.form;
 
-        //生成dart文件
+
+        /*生成dart文件*/
+        /*生成dart文件*/
+        /*生成dart文件*/
         $('#generatebtn').click(function () {
             //取得json字符串
             var jsonStr = $('#inputjson').val();
@@ -230,7 +254,9 @@
         });
 
 
-        //生成dart文件
+        /*MD5Tab*/
+        /*MD5Tab*/
+        /*MD5Tab*/
         $('#md5Generate').click(function () {
             //取得json字符串
             var md5Str = $('#md5Input').val();
@@ -250,6 +276,51 @@
                     $('#md16Upper').html(json.md16Upper);
                     $('#md32Lower').html(json.md32Lower);
                     $('#md32Upper').html(json.md32Upper);
+                },
+                complete: function () {
+                    layer.close(this.layerIndex);
+                },
+            });
+        });
+
+        /*编码解码*/
+        /*编码解码*/
+        /*编码解码*/
+        $('#urlEncodeBtn').click(function () {
+            //取得json字符串
+            var urlStr = $('#urlInput').val();
+            //请求后台接口
+            $.ajax({
+                url: "api/urlEncode",
+                type: 'post',
+                data: {urlStr: urlStr},
+                beforeSend: function () {
+                    this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
+                },
+                success: function (data) {
+                    //加密结果
+                    $('#urlInput').val(data.data);
+                },
+                complete: function () {
+                    layer.close(this.layerIndex);
+                },
+            });
+        });
+
+        $('#urlDecodeBtn').click(function () {
+            //取得json字符串
+            var urlStr = $('#urlInput').val();
+            //请求后台接口
+            $.ajax({
+                url: "api/urlDecode",
+                type: 'post',
+                data: {urlStr: urlStr},
+                beforeSend: function () {
+                    this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
+                },
+                success: function (data) {
+                    //加密结果
+                    $('#urlInput').val(data.data);
                 },
                 complete: function () {
                     layer.close(this.layerIndex);

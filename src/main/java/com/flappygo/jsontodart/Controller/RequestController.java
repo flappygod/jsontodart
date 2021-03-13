@@ -13,6 +13,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSON;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+
 
 @RestController
 @RequestMapping("/api")
@@ -66,8 +69,8 @@ public class RequestController extends BaseController {
         try {
             JSONObject jsonObject = new JSONObject();
 
-            String md16Lower = DigestUtils.md5Hex(md5Str).toLowerCase().substring(8,24);
-            String md16Upper = DigestUtils.md5Hex(md5Str).toUpperCase().substring(8,24);
+            String md16Lower = DigestUtils.md5Hex(md5Str).toLowerCase().substring(8, 24);
+            String md16Upper = DigestUtils.md5Hex(md5Str).toUpperCase().substring(8, 24);
 
             String md32Lower = DigestUtils.md5Hex(md5Str).toLowerCase();
             String md32Upper = DigestUtils.md5Hex(md5Str).toUpperCase();
@@ -84,5 +87,27 @@ public class RequestController extends BaseController {
         }
 
     }
+
+
+    //url编码
+    @RequestMapping(value = "/urlEncode", produces = "application/json; charset=utf-8")
+    public ResponseModel urlEncode(@RequestParam(value = "urlStr", defaultValue = "") String urlStr) {
+        try {
+            return getSuccessResult(URLEncoder.encode(urlStr, "utf-8"));
+        } catch (Exception ex) {
+            return getFailureResult(ex.getMessage());
+        }
+    }
+
+    //url解码
+    @RequestMapping(value = "/urlDecode", produces = "application/json; charset=utf-8")
+    public ResponseModel urlDecode(@RequestParam(value = "urlStr", defaultValue = "") String urlStr) {
+        try {
+            return getSuccessResult(URLDecoder.decode(urlStr, "utf-8"));
+        } catch (Exception ex) {
+            return getFailureResult(ex.getMessage());
+        }
+    }
+
 
 }
