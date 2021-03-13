@@ -1,4 +1,4 @@
-package com.flappygo.jsontodart.Tools;
+package com.flappygo.jsontodart.Tools.Unicode;
 
 public class UnicodeTool {
     public static String unicodeToCn(String unicode) {

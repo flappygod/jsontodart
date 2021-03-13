@@ -1,8 +1,12 @@
 package com.flappygo.jsontodart.Controller;
 
 
-import com.flappygo.jsontodart.Tools.UnicodeTool;
+import com.flappygo.jsontodart.Config.WebConfig;
+import com.flappygo.jsontodart.Tools.QrCode.QrCodeGenerate;
+import com.flappygo.jsontodart.Tools.Unicode.UnicodeTool;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.flappygo.jsontodart.Controller.Base.BaseController;
@@ -22,6 +26,8 @@ import java.net.URLEncoder;
 @RequestMapping("/api")
 public class RequestController extends BaseController {
 
+    @Autowired
+    WebConfig webConfig;
 
     //美化json字符串
     @RequestMapping(value = "/jsonToPretty", produces = "application/json; charset=utf-8")
@@ -114,6 +120,19 @@ public class RequestController extends BaseController {
     public ResponseModel unicodeDecode(@RequestParam(value = "unicodeStr", defaultValue = "") String unicodeStr) {
         try {
             return getSuccessResult(UnicodeTool.unicodeToCn(unicodeStr));
+        } catch (Exception ex) {
+            return getFailureResult(ex.getMessage());
+        }
+    }
+
+    //unicode解码
+    @RequestMapping(value = "/qrcodeGenerate", produces = "application/json; charset=utf-8")
+    public ResponseModel qrcodeGenerate(@RequestParam(value = "qrcodeStr", defaultValue = "") String qrcodeStr) {
+        try {
+            String path = webConfig.getUploadFolder() + System.currentTimeMillis() + ".png";
+            String retPath = webConfig.getStaticAccessPath() + System.currentTimeMillis() + ".png";
+            QrCodeGenerate.generateQRCodeImage(qrcodeStr, 500, 500, path);
+            return getSuccessResult(retPath);
         } catch (Exception ex) {
             return getFailureResult(ex.getMessage());
         }

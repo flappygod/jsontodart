@@ -52,7 +52,6 @@
 		</dependency>
 
 
-
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
@@ -60,11 +59,24 @@
 		</dependency>
 
 
-
+		<!--MD5-->
 		<dependency>
 			<groupId>org.apache.directory.studio</groupId>
 			<artifactId>org.apache.commons.codec</artifactId>
 			<version>1.8</version>
+		</dependency>
+
+
+		<!--二维码生成-->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.3.0</version>
 		</dependency>
 
 
