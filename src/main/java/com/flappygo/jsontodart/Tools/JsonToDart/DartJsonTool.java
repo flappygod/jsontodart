@@ -13,6 +13,17 @@ import java.util.List;
 //通过json 生成dart文件
 public class DartJsonTool {
 
+    //非空安全类型
+    public static enum SafetyType {
+        //普通可以为空模式
+        NORMAL_CANNULL,
+        //空安全，但是都能为空
+        SAFETY_CANNULL,
+        //空安全，都强制初始化
+        SAFETY_NOTNULL,
+    }
+
+
     //字符串class
     public static DartObject stringClass = new DartObject("String", new ArrayList<DartObjectValue>());
 
@@ -31,12 +42,21 @@ public class DartJsonTool {
     }
 
     //转换为驼峰
-    private static String toCamelCase(String str) {
-        return CaseUtils.toCamelCase(str, false, new char[]{'_'});
+    private static String toCamelCase(String letter) {
+        String[] strs = letter.split("_");
+        StringBuffer stringBuffer = new StringBuffer();
+        for (int s = 0; s < strs.length; s++) {
+            if (s == 0) {
+                stringBuffer.append(firstLetterLowercase(strs[s]));
+            } else {
+                stringBuffer.append(firstLetterUpercase(strs[s]));
+            }
+        }
+        return stringBuffer.toString();
     }
 
     //解析这个json
-    public static String generateDartToJson(String jsonStr, String className) throws Exception {
+    public static String generateDartToJson(String jsonStr, String className, SafetyType safetyType) throws Exception {
 
         //转换为jsonObject
         JSONObject jsonObject = new JSONObject(jsonStr);
@@ -49,9 +69,13 @@ public class DartJsonTool {
 
         //转换为
         StringBuffer retBuffer = new StringBuffer();
+
+        //遍历
         for (int s = filteredObjects.size() - 1; s >= 0; s--) {
-            retBuffer.append(dartClassToString(filteredObjects.get(s)).toString());
+            //将class文件进行重新拼装
+            retBuffer.append(dartClassToString(filteredObjects.get(s), safetyType).toString());
         }
+
         //转换
         return retBuffer.toString();
     }
@@ -79,7 +103,7 @@ public class DartJsonTool {
             //获取
             Object childObject = jsonObject.get(key);
             //如果是对象类型
-            if (childObject instanceof JSONObject) {
+            if (childObject instanceof JSONObject && ((JSONObject) childObject).keySet().size() > 0) {
 
                 //值的类型的名称
                 String valueCalssName = firstLetterUpercase(toCamelCase(key));
@@ -94,7 +118,6 @@ public class DartJsonTool {
                 //添加成为此类型的value
                 dartObjects.getValues().add(value);
 
-
             }
             //如果是数组类型
             else if (childObject instanceof JSONArray) {
@@ -106,11 +129,21 @@ public class DartJsonTool {
 
                 //如果是存在的
                 if (valueObjects.length() > 0) {
-                    //获取第一个对象
+
+                    //获取所有对象中属性最多的一个对象,这里后续可以优化为,取得所有对象的交集
                     Object valueChildData = valueObjects.get(0);
+                    if (valueChildData instanceof JSONObject) {
+                        for (int s = 0; s < valueObjects.length(); s++) {
+                            if (valueObjects.get(s) instanceof JSONObject) {
+                                if (((JSONObject) valueObjects.get(s)).keySet().size() > ((JSONObject) valueChildData).keySet().size()) {
+                                    valueChildData = valueObjects.get(s);
+                                }
+                            }
+                        }
+                    }
 
                     //如果是对象
-                    if (valueChildData instanceof JSONObject) {
+                    if (valueChildData instanceof JSONObject && ((JSONObject) valueChildData).keySet().size() > 0) {
 
                         //获取子对象的objects
                         List<DartObject> childObjects = generateJsonDartObject((JSONObject) valueChildData, valueCalssName, new ArrayList<DartObject>());
@@ -295,48 +328,139 @@ public class DartJsonTool {
     }
 
     //转换
-    private static String dartClassToString(DartObject dartObject) {
+    private static String dartClassToString(DartObject dartObject, SafetyType safetyType) {
 
         StringBuffer stringBuffer = new StringBuffer();
-        //开始
+
+        //文件名称
         stringBuffer.append("class " + dartObject.getName() + " {\n");
 
+        //换行
         stringBuffer.append("\n");
 
+        //加入变量定义
+        generateParams(stringBuffer, dartObject, safetyType);
+
+        //换行
+        stringBuffer.append("\n");
+
+        //加入构造器定义
+        generateConstructor(stringBuffer, dartObject, safetyType);
+
+        //换行
+        stringBuffer.append("\n");
+
+        //加入fromJson方法
+        generateFromJson(stringBuffer, dartObject, safetyType);
+
+        //换行
+        stringBuffer.append("\n");
+
+        //转换为json toJson
+        generateToJson(stringBuffer, dartObject, safetyType);
+
+        //结尾
+        stringBuffer.append("}\n");
+
+        //转换为字符串
+        return stringBuffer.toString();
+    }
+
+
+    //添加参数
+    private static void generateParams(StringBuffer stringBuffer, DartObject dartObject, SafetyType safetyType) {
         //参数
         for (int s = 0; s < dartObject.getValues().size(); s++) {
-
             //驼峰变量名
             String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
             //驼峰类型名
             String className = dartObject.getValues().get(s).getTypeClass().getName();
-
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
-                stringBuffer.append("  " + className + " " + valueName + ";\n");
+            //如果是空安全
+            if (safetyType == SafetyType.NORMAL_CANNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("  " + className + " " + valueName + ";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("  " + className + " " + valueName + ";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("  " + className + " " + valueName + ";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    stringBuffer.append("  " + "List<" + className + ">" + " " + valueName + ";\n");
+                }
             }
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
-                stringBuffer.append("  " + className + " " + valueName + ";\n");
+            //空安全无所谓
+            else if (safetyType == SafetyType.SAFETY_CANNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("  " + className + "? " + valueName + ";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("  " + className + "? " + valueName + ";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("  " + className + "? " + valueName + ";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    stringBuffer.append("  " + "List<" + className + ">?" + " " + valueName + ";\n");
+                }
             }
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                stringBuffer.append("  " + className + " " + valueName + ";\n");
-            }
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
-                stringBuffer.append("  " + "List<" + className + ">" + " " + valueName + ";\n");
+            //空安全
+            else if (safetyType == SafetyType.SAFETY_NOTNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("  " + className + " " + valueName + "=\"\";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("  " + className + " " + valueName + "=\"\";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("  " + className + " " + valueName + "= " + className + ".fromJson(new Map());\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    stringBuffer.append("  " + "List<" + className + ">" + " " + valueName + "=[];\n");
+                }
             }
         }
-        stringBuffer.append("\n");
 
+    }
+
+
+    //加入构造器
+    private static void generateConstructor(StringBuffer stringBuffer, DartObject dartObject, SafetyType safetyType) {
         //构造器
         stringBuffer.append("  " + dartObject.getName() + "({\n");
         for (int s = 0; s < dartObject.getValues().size(); s++) {
-            String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-            stringBuffer.append("    " + "this." + valueName + ",\n");
+            if (safetyType == SafetyType.NORMAL_CANNULL) {
+                String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
+                stringBuffer.append("    " + "this." + valueName + ",\n");
+            } else if (safetyType == SafetyType.SAFETY_CANNULL) {
+                String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
+                stringBuffer.append("    " + "this." + valueName + ",\n");
+            } else if (safetyType == SafetyType.SAFETY_NOTNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
+                    stringBuffer.append("    " + "this." + valueName + "=\"\",\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
+                    stringBuffer.append("    " + "this." + valueName + "=\"\",\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
+                    stringBuffer.append("    " + "required this." + valueName + ",\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
+                    stringBuffer.append("    " + "required this." + valueName + ",\n");
+                }
+            }
         }
         stringBuffer.append("  });\n");
-        stringBuffer.append("\n");
+    }
 
 
-        //从json解析过来fromJson
+    //创建fromJson方法
+    private static void generateFromJson(StringBuffer stringBuffer, DartObject dartObject, SafetyType safetyType) {
         stringBuffer.append("  " + dartObject.getName() + ".fromJson(Map<String, dynamic> json) {\n");
         for (int s = 0; s < dartObject.getValues().size(); s++) {
             //驼峰变量名
@@ -344,97 +468,218 @@ public class DartJsonTool {
             //驼峰类型名
             String className = dartObject.getValues().get(s).getTypeClass().getName();
 
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
-                stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.toString();\n");
-            }
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
-                stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
-            }
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] != null){\n");
-                stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "']);\n");
-                stringBuffer.append("    " + "}\n");
-            }
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
-                //字符串
-                if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
-                    stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+            //普通模式
+            if (safetyType == SafetyType.NORMAL_CANNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.toString();\n");
                 }
-                //动态类型
-                else if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
-                    stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
                 }
-                //其他类型
-                else {
-                    stringBuffer.append("    " + valueName + " = new List<" + className + ">();\n");
-                    stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] != null) {\n");
-                    stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "'].forEach((v) {\n");
-                    stringBuffer.append("     " + valueName + ".add(new " + className + ".fromJson(v));\n");
-                    stringBuffer.append("     " + "});\n");
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] != null){\n");
+                    stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "']);\n");
                     stringBuffer.append("    " + "}\n");
                 }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    //字符串
+                    if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                    }
+                    //动态类型
+                    else if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                    }
+                    //其他类型
+                    else {
+                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] != null) {\n");
+                        stringBuffer.append("     " + valueName + " = [];\n");
+                        stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "'].forEach((v) {\n");
+                        stringBuffer.append("     " + valueName + ".add(new " + className + ".fromJson(v));\n");
+                        stringBuffer.append("     " + "});\n");
+                        stringBuffer.append("    " + "}\n");
+                    }
+                }
+            } else if (safetyType == SafetyType.SAFETY_CANNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.toString();\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] != null){\n");
+                    stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "']);\n");
+                    stringBuffer.append("    " + "}\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    //字符串
+                    if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                    }
+                    //动态类型
+                    else if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                    }
+                    //其他类型
+                    else {
+                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] != null) {\n");
+                        stringBuffer.append("     " + valueName + " = [];\n");
+                        stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.forEach((v) {\n");
+                        stringBuffer.append("     " + valueName + "?.add(new " + className + ".fromJson(v));\n");
+                        stringBuffer.append("     " + "});\n");
+                        stringBuffer.append("    " + "}\n");
+                    }
+                }
+            } else if (safetyType == SafetyType.SAFETY_NOTNULL) {
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.toString() ?? \"\";\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']  ?? \"\";;\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "'] ?? new Map());\n");
+                }
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    //字符串
+                    if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'] ?? [];\n");
+                    }
+                    //动态类型
+                    else if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'] ?? [];\n");
+                    }
+                    //其他类型
+                    else {
+                        stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.forEach((v) {\n");
+                        stringBuffer.append("     " + valueName + ".add(new " + className + ".fromJson(v));\n");
+                        stringBuffer.append("     " + "});\n");
+                    }
+                }
             }
+
         }
         stringBuffer.append("  }\n");
-        stringBuffer.append("\n");
+    }
 
-
-        //转换为json toJson
+    //创建toJson
+    private static void generateToJson(StringBuffer stringBuffer, DartObject dartObject, SafetyType safetyType) {
         stringBuffer.append("  " + "Map<String, dynamic> toJson() {\n");
         stringBuffer.append("    " + "final Map<String, dynamic> data = new Map<String, dynamic>();\n");
         for (int s = 0; s < dartObject.getValues().size(); s++) {
             //驼峰变量名
             String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-            //如果是字符串好处理
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
-                stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
-            }
-            //如果是动态类型好处理
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
-                stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
-            }
-            //如果是模型
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
-                stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ".toJson();\n");
-                stringBuffer.append("    " + "}\n");
-            }
-            //如果是模型列表
-            if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
 
-                //动态类型
-                if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+            //可以为空
+            if (safetyType == SafetyType.NORMAL_CANNULL) {
+                //如果是字符串好处理
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                }
+                //如果是动态类型好处理
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                }
+                //如果是模型
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
                     stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
-                    stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                    stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ".toJson();\n");
                     stringBuffer.append("    " + "}\n");
                 }
-                //字符串类型
-                else if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
-                    stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
-                    stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
-                    stringBuffer.append("    " + "}\n");
-                }
-                //对象类型
-                else {
-                    stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
-                    stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ".map((v) => v.toJson()).toList();\n");
-                    stringBuffer.append("    " + "}\n");
-                }
+                //如果是模型列表
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
 
+                    //动态类型
+                    if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+                        stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                        stringBuffer.append("    " + "}\n");
+                    }
+                    //字符串类型
+                    else if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
+                        stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                        stringBuffer.append("    " + "}\n");
+                    }
+                    //对象类型
+                    else {
+                        stringBuffer.append("    " + "if( this." + valueName + " != null){\n");
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ".map((v) => v.toJson()).toList();\n");
+                        stringBuffer.append("    " + "}\n");
+                    }
+
+                }
             }
+            //空安全可空
+            else if (safetyType == SafetyType.SAFETY_CANNULL) {
+                //如果是字符串好处理
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                }
+                //如果是动态类型好处理
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                }
+                //如果是模型
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + "?.toJson();\n");
+                }
+                //如果是模型列表
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+
+                    //动态类型
+                    if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                    }
+                    //字符串类型
+                    else if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                    }
+                    //对象类型
+                    else {
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + "?.map((v) => v.toJson())?.toList();\n");
+                    }
+
+                }
+            }
+
+            //空安全不可空
+            else if (safetyType == SafetyType.SAFETY_NOTNULL) {
+                //如果是字符串好处理
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
+                    stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                }
+                //如果是动态类型好处理
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
+                    stringBuffer.append("    " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                }
+                //如果是模型
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
+                    stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ".toJson();\n");
+                }
+                //如果是模型列表
+                if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
+                    //动态类型
+                    if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                    }
+                    //字符串类型
+                    else if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ";\n");
+                    }
+                    //对象类型
+                    else {
+                        stringBuffer.append("     " + "data['" + dartObject.getValues().get(s).getValueName() + "'] = this." + valueName + ".map((v) => v.toJson()).toList();\n");
+                    }
+                }
+            }
+
         }
         stringBuffer.append("    " + "return data;\n");
         stringBuffer.append("  }\n");
         stringBuffer.append("\n");
-
-
-        //结尾
-        stringBuffer.append("}\n");
-        //转换为字符串
-        return stringBuffer.toString();
     }
-
-
 }
 
 
