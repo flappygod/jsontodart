@@ -19,6 +19,13 @@
             background: transparent;
             overflow-y: auto;
         }
+
+        .layui-upload-img {
+            width: 250px;
+            height: 250px;
+            margin: 0 10px 10px 0;
+            border:1px solid lightgray;
+        }
     </style>
 
 </head>
@@ -57,7 +64,7 @@
                                 </div>
                                 <div class="layui-col-md6">
                                     <div class="layui-form" lay-filter="component-form-element">
-                                        <input type="radio" name="nullSafety" value="0" title="常规模式" >
+                                        <input type="radio" name="nullSafety" value="0" title="常规模式">
                                         <input type="radio" name="nullSafety" value="1" title="安全可空">
                                         <input type="radio" name="nullSafety" value="2" title="安全非空" checked>
                                     </div>
@@ -199,11 +206,12 @@
 
                     <div class="layui-card-body layui-row layui-col-space20">
                         <div class="layui-col-md3 layui-col-sm6">
-                            <blockquote class="layui-elem-quote"><img class="layui-upload-img" id="qrcodeImage"
-                                                                      name="qrcodeImage" src=""
-                                                                      onerror="this.src='https://ss0.bdstatic.com/70cFuHSh_Q1YnxGkpoWK1HF6hhy/it/u=2413220883,2062292495&fm=26&gp=0.jpg'"
-                                                                      style="width: 100%;height: 100%;"/>
-                            </blockquote>
+                            <div class="layui-upload">
+                                <div class="layui-upload-list">
+                                    <img class="layui-upload-img" name="qrcodeImage" id="qrcodeImage">
+                                    <p id="test-upload-demoText"></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
