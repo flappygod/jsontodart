@@ -226,11 +226,7 @@ public class DartJsonTool {
         return null;
     }
 
-
-    //判断是否已经包含了重复的model,如果重复了，返回集合更大更多的objects
-    private static DartObject checkRepeatModel(DartObject objectOne, DartObject objectTwo) {
-
-
+    private static DartObject checkAContainSB(DartObject objectOne, DartObject objectTwo) {
         //判断对象一是否包含对象二
         boolean oneContainsTwo = true;
         for (int a = 0; a < objectTwo.getValues().size(); a++) {
@@ -248,26 +244,25 @@ public class DartJsonTool {
         if (oneContainsTwo) {
             return objectOne;
         }
+        return null;
+    }
 
-        //判断对象二是否包含对象一
-        boolean twoContainsOne = true;
-        for (int a = 0; a < objectOne.getValues().size(); a++) {
-            boolean containValue = false;
-            for (int b = 0; b < objectTwo.getValues().size(); b++) {
-                if (isValueContain(objectTwo.getValues().get(b), objectOne.getValues().get(a))) {
-                    containValue = true;
-                }
-            }
-            if (containValue == false) {
-                twoContainsOne = false;
-                break;
-            }
-        }
-        if (twoContainsOne) {
-            return objectTwo;
+
+    //判断是否已经包含了重复的model,如果重复了，返回集合更大更多的objects
+    private static DartObject checkRepeatModel(DartObject objectOne, DartObject objectTwo) {
+
+        if(objectOne.getName().equals(objectTwo.getName())){
+            System.out.println("wqeqwe");
         }
 
-        //没有相互包含
+        DartObject retOne = checkAContainSB(objectOne, objectTwo);
+        if (retOne != null) {
+            return retOne;
+        }
+        DartObject retTwo = checkAContainSB(objectTwo, objectOne);
+        if (retTwo != null) {
+            return retTwo;
+        }
         return null;
     }
 
@@ -284,6 +279,7 @@ public class DartJsonTool {
             if (two.getType() == DartObjectsValueType.TYPE_DYNAMIC) {
                 return true;
             }
+            return true;
         }
         return false;
     }
@@ -302,8 +298,7 @@ public class DartJsonTool {
                 //同一位置不判断
                 if (copyArrayOne.get(a) != copyArrayTwo.get(b)) {
                     //如果第一个包含了第二个
-                    if (checkRepeatModel(copyArrayOne.get(a), copyArrayTwo.get(b)) == objects.get(a)) {
-
+                    if (checkRepeatModel(copyArrayOne.get(a), copyArrayTwo.get(b)) == copyArrayOne.get(a)) {
                         //处理掉B中的重复数据,将类型改掉
                         for (int s = 0; s < copyArrayOne.size(); s++) {
                             for (int j = 0; j < copyArrayOne.get(s).getValues().size(); j++) {
@@ -312,12 +307,11 @@ public class DartJsonTool {
                                 }
                             }
                         }
-
                         //移除B,因为对象实际没有进行复制，b列表中value对象的typeClass同样被替换掉了
+                        copyArrayOne.remove(b);
                         copyArrayTwo.remove(b);
-                        //减少B的值
+                        //减少AB的值
                         b--;
-
                     }
                 }
             }
