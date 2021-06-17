@@ -2,6 +2,8 @@ package com.flappygo.jsontodart.Tools.JsonToDart;
 
 public enum DartObjectsValueType {
     //直接是字符串
+    TYPE_BOOL,
+    //直接是字符串
     TYPE_STRING,
     //动态类型
     TYPE_DYNAMIC,
