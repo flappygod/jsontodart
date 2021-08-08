@@ -45,6 +45,12 @@ public class DartJsonTool {
 
     //转换为驼峰
     private static String toCamelCase(String letter) {
+        if (letter.startsWith("_")) {
+            letter = "underLine" + letter;
+        }
+        if (letter.startsWith("@")) {
+            letter = "at" + letter.substring(1,letter.length());
+        }
         String[] strs = letter.split("_");
         StringBuffer stringBuffer = new StringBuffer();
         for (int s = 0; s < strs.length; s++) {
