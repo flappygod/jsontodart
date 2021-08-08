@@ -555,11 +555,11 @@ public class DartJsonTool {
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
                     //字符串
                     if (dartObject.getValues().get(s).getTypeClass() == boolClass) {
-                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "']?.cast<bool>();\n");
                     }
                     //字符串
                     else if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
-                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "']?.cast<String>();\n");
                     }
                     //动态类型
                     else if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
@@ -591,11 +591,11 @@ public class DartJsonTool {
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
                     //字符串
                     if (dartObject.getValues().get(s).getTypeClass() == boolClass) {
-                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'] ?? [];\n");
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "']?.cast<bool>() ?? [];\n");
                     }
                     //字符串
                     else if (dartObject.getValues().get(s).getTypeClass() == stringClass) {
-                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "'] ?? [];\n");
+                        stringBuffer.append("    " + valueName + " = json['" + dartObject.getValues().get(s).getValueName() + "']?.cast<String>() ?? [];\n");
                     }
                     //动态类型
                     else if (dartObject.getValues().get(s).getTypeClass() == dynamicClass) {
