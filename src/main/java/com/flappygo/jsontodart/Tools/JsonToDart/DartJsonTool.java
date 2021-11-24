@@ -440,7 +440,7 @@ public class DartJsonTool {
                     stringBuffer.append("  " + className + " " + valueName + "=\"\";\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                    stringBuffer.append("  " + className + " " + valueName + "= " + className + ".fromJson(new Map());\n");
+                    stringBuffer.append("  " + className + " " + valueName + "= " + className + ".fromJson({});\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
                     stringBuffer.append("  " + "List<" + className + ">" + " " + valueName + "=[];\n");
@@ -587,7 +587,7 @@ public class DartJsonTool {
                     stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']  ?? \"\";\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                    stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "'] ?? Map());\n");
+                    stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "'] ?? {});\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
                     //字符串
