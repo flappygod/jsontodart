@@ -335,6 +335,7 @@ public class DartJsonTool {
                         copyArrayTwo.remove(b);
                         //减少AB的值
                         b--;
+                        a--;
                     }
                 }
             }
