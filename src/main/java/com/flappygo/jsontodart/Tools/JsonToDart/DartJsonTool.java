@@ -432,13 +432,13 @@ public class DartJsonTool {
             //空安全
             else if (safetyType == SafetyType.SAFETY_NOTNULL) {
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_BOOL) {
-                    stringBuffer.append("  " + className + " " + valueName + "=false;\n");
+                    stringBuffer.append("  late " + className + " " + valueName + ";\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
-                    stringBuffer.append("  " + className + " " + valueName + "=\"\";\n");
+                    stringBuffer.append("  late " + className + " " + valueName + ";\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
-                    stringBuffer.append("  " + className + " " + valueName + "=\"\";\n");
+                    stringBuffer.append("  late " + className + " " + valueName + ";\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
                     stringBuffer.append("  " + className + "? " + valueName + ";\n");
