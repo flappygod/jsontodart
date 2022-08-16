@@ -467,23 +467,23 @@ public class DartJsonTool {
             } else if (safetyType == SafetyType.SAFETY_NOTNULL) {
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_BOOL) {
                     String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-                    stringBuffer.append("    " + "this." + valueName + "=false,\n");
+                    stringBuffer.append("    required " + "this." + valueName + ",\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_STRING) {
                     String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-                    stringBuffer.append("    " + "this." + valueName + "=\"\",\n");
+                    stringBuffer.append("    required " + "this." + valueName + ",\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_DYNAMIC) {
                     String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-                    stringBuffer.append("    " + "this." + valueName + "=\"\",\n");
+                    stringBuffer.append("    required " + "this." + valueName + ",\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
                     String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-                    stringBuffer.append("    " + "required this." + valueName + ",\n");
+                    stringBuffer.append("    required " + "this." + valueName + ",\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL_LIST) {
                     String valueName = toCamelCase(dartObject.getValues().get(s).getValueName());
-                    stringBuffer.append("    " + "required this." + valueName + ",\n");
+                    stringBuffer.append("    required " + "this." + valueName + ",\n");
                 }
             }
         }
