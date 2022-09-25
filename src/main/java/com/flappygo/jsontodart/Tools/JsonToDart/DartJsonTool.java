@@ -336,6 +336,7 @@ public class DartJsonTool {
                         //减少AB的值
                         b--;
                         a--;
+                        break;
                     }
                 }
             }
