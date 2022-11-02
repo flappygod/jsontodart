@@ -51,6 +51,9 @@ public class DartJsonTool {
         if (letter.startsWith("@")) {
             letter = "at" + letter.substring(1, letter.length());
         }
+        if(letter.contains("-")){
+            letter  = letter.replace("-","_");
+        }
         String[] strs = letter.split("_");
         StringBuffer stringBuffer = new StringBuffer();
         for (int s = 0; s < strs.length; s++) {
@@ -513,7 +516,7 @@ public class DartJsonTool {
                     stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] != null){\n");
+                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] is Map){\n");
                     stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "']);\n");
                     stringBuffer.append("    " + "}\n");
                 }
@@ -532,7 +535,7 @@ public class DartJsonTool {
                     }
                     //其他类型
                     else {
-                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] != null) {\n");
+                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] is List) {\n");
                         stringBuffer.append("     " + valueName + " = [];\n");
                         stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "'].forEach((v) {\n");
                         stringBuffer.append("     " + valueName + ".add(" + className + ".fromJson(v));\n");
@@ -551,7 +554,7 @@ public class DartJsonTool {
                     stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "'];\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] != null){\n");
+                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] is Map){\n");
                     stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "']);\n");
                     stringBuffer.append("    " + "}\n");
                 }
@@ -571,7 +574,7 @@ public class DartJsonTool {
                     }
                     //其他类型
                     else {
-                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] != null) {\n");
+                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] is List) {\n");
                         stringBuffer.append("     " + valueName + " = [];\n");
                         stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.forEach((v) {\n");
                         stringBuffer.append("     " + valueName + "?.add(" + className + ".fromJson(v));\n");
@@ -590,7 +593,7 @@ public class DartJsonTool {
                     stringBuffer.append("    " + valueName + " = " + "json['" + dartObject.getValues().get(s).getValueName() + "']  ?? \"\";\n");
                 }
                 if (dartObject.getValues().get(s).getType() == DartObjectsValueType.TYPE_MODEL) {
-                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] != null){\n");
+                    stringBuffer.append("    " + "if(json['" + dartObject.getValues().get(s).getValueName() + "'] is Map){\n");
                     stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "']);\n");
                     stringBuffer.append("    " + "}\n");
                     //stringBuffer.append("     " + valueName + " = " + className + ".fromJson(json['" + dartObject.getValues().get(s).getValueName() + "'] ?? {});\n");
@@ -611,9 +614,11 @@ public class DartJsonTool {
                     }
                     //其他类型
                     else {
+                        stringBuffer.append("    " + "if (json['" + dartObject.getValues().get(s).getValueName() + "'] is List) {\n");
                         stringBuffer.append("     " + "json['" + dartObject.getValues().get(s).getValueName() + "']?.forEach((v) {\n");
                         stringBuffer.append("     " + valueName + ".add(" + className + ".fromJson(v));\n");
                         stringBuffer.append("     " + "});\n");
+                        stringBuffer.append("    " + "}\n");
                     }
                 }
             }
