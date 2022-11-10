@@ -54,6 +54,12 @@ public class DartJsonTool {
         if(letter.contains("-")){
             letter  = letter.replace("-","_");
         }
+        if(letter.contains("/")){
+            letter  = letter.replace("/","_");
+        }
+        if(letter.contains(" ")){
+            letter  = letter.replace(" ","_");
+        }
         String[] strs = letter.split("_");
         StringBuffer stringBuffer = new StringBuffer();
         for (int s = 0; s < strs.length; s++) {
