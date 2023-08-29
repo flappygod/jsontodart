@@ -49,8 +49,8 @@ public class RequestController extends BaseController {
     @RequestMapping(value = "/jsonToDart", produces = "application/json; charset=utf-8")
     public ResponseModel jsonToDart(@RequestParam(value = "jsonStr", defaultValue = "") String jsonStr,
                                     @RequestParam(value = "className", defaultValue = "") String className,
-                                    @RequestParam(value = "nullSafety",required = false) boolean nullSafety,
-                                    @RequestParam(value = "compileFlag",required = false) boolean compileFlag) {
+                                    @RequestParam(value = "nullSafety", required = false) boolean nullSafety,
+                                    @RequestParam(value = "compileFlag", required = false) boolean compileFlag) {
 
 
         if (StringUtils.isNotEmpty(jsonStr)) {
@@ -69,7 +69,7 @@ public class RequestController extends BaseController {
                 }
 
                 //设置
-                return getSuccessResult(DartJsonTool.generateDartToJson(jsonStr, name, safetyType,compileFlag));
+                return getSuccessResult(DartJsonTool.generateDartToJson(jsonStr, name, safetyType, compileFlag));
 
             } catch (Exception ex) {
                 return getFailureResult(ex.getMessage());
@@ -141,8 +141,9 @@ public class RequestController extends BaseController {
     @RequestMapping(value = "/qrcodeGenerate", produces = "application/json; charset=utf-8")
     public ResponseModel qrcodeGenerate(@RequestParam(value = "qrcodeStr", defaultValue = "") String qrcodeStr) {
         try {
-            String path = webConfig.getUploadFolder() + System.currentTimeMillis() + ".png";
-            String retPath = webConfig.getStaticAccessPath() + System.currentTimeMillis() + ".png";
+            String fileName = System.currentTimeMillis()+"";
+            String path = webConfig.getUploadFolder() + webConfig.getSaveFilePath() + fileName + ".png";
+            String retPath = webConfig.getStaticAccessPath() +webConfig.getSaveFilePath() + fileName + ".png";
             QrCodeGenerate.generateQRCodeImage(qrcodeStr, 512, 512, path);
             return getSuccessResult(retPath);
         } catch (Exception ex) {

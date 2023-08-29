@@ -17,6 +17,9 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.uploadFolder}")
     private String uploadFolder;
 
+    @Value("${file.saveFilePath}")
+    private String saveFilePath;
+
     public String getStaticAccessPath() {
         return staticAccessPath;
     }
@@ -33,8 +36,16 @@ public class WebConfig implements WebMvcConfigurer {
         this.uploadFolder = uploadFolder;
     }
 
+    public String getSaveFilePath() {
+        return saveFilePath;
+    }
+
+    public void setSaveFilePath(String saveFilePath) {
+        this.saveFilePath = saveFilePath;
+    }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler(staticAccessPath+"**").addResourceLocations("file:"+ uploadFolder);
+        registry.addResourceHandler(staticAccessPath + "**").addResourceLocations("file:" + uploadFolder);
     }
 }
