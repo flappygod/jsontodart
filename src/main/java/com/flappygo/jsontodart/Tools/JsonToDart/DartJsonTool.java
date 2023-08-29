@@ -125,7 +125,7 @@ public class DartJsonTool {
     }
 
     //解析这个json
-    public static String generateDartToJson(String jsonStr, String className, SafetyType safetyType) throws Exception {
+    public static String generateDartToJson(String jsonStr, String className, SafetyType safetyType, boolean compileLikes) throws Exception {
 
         //转换为jsonObject
         JSONObject jsonObject = new JSONObject(jsonStr);
@@ -134,7 +134,7 @@ public class DartJsonTool {
         List<DartObject> dartObjects = generateJsonDartObject(jsonObject, className);
 
         //此时存在重复的，我们需要去重
-        List<DartObject> filteredObjects = filterRepeatObjects(dartObjects);
+        List<DartObject> filteredObjects = compileLikes ? filterRepeatObjects(dartObjects) : dartObjects;
 
         //转换为
         StringBuilder retBuffer = new StringBuilder();
