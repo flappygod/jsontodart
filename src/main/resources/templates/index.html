@@ -252,7 +252,7 @@
         $('#generatebtn').click(function () {
 
             //取得json字符串
-            var jsonStr = $('#jsonInput').val();
+            var json = $('#jsonInput').val();
 
             //取得名称
             var className = $('#resultname').val();
@@ -266,7 +266,12 @@
             $.ajax({
                 url: "api/jsonToDart",
                 type: 'post',
-                data: {jsonStr: jsonStr, className: className, nullSafety: nullSafety, compileFlag: compileFlag},
+                data: {
+                    jsonStr: json.replace(/[\t\n]/g, ''),
+                    className: className,
+                    nullSafety: nullSafety,
+                    compileFlag: compileFlag
+                },
                 beforeSend: function () {
                     this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
                 },
@@ -282,12 +287,14 @@
         //格式化点击
         $('#formatbtn').click(function () {
             //获取json字符串
-            var jsonStr = $('#jsonInput').val();
+            var json = $('#jsonInput').val();
             //请求后台接口
             $.ajax({
                 url: "api/jsonToPretty",
                 type: 'post',
-                data: {jsonStr: jsonStr},
+                data: {
+                    jsonStr: json.replace(/[\t\n]/g, '')
+                },
                 beforeSend: function () {
                     //显示转圈圈
                     this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
@@ -319,12 +326,14 @@
         /*MD5Tab*/
         $('#md5Generate').click(function () {
             //取得json字符串
-            var md5Str = $('#md5Input').val();
+            var md5 = $('#md5Input').val();
             //请求后台接口
             $.ajax({
                 url: "api/md5Generate",
                 type: 'post',
-                data: {md5Str: md5Str},
+                data: {
+                    md5Str: md5
+                },
                 beforeSend: function () {
                     this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
                 },
