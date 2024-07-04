@@ -125,7 +125,11 @@ public class DartJsonTool {
     }
 
     //解析这个json
-    public static String generateDartToJson(String jsonStr, String className, SafetyType safetyType, boolean compileLikes) throws Exception {
+    public static String generateDartToJson(String jsonStr,
+                                            String className,
+                                            SafetyType safetyType,
+                                            boolean compileContainFlag,
+                                            boolean compileEqualFlag) throws Exception {
 
         //转换为jsonObject
         JSONObject jsonObject = new JSONObject(jsonStr);
@@ -134,7 +138,17 @@ public class DartJsonTool {
         List<DartObject> dartObjects = generateJsonDartObject(jsonObject, className);
 
         //此时存在重复的，我们需要去重
-        List<DartObject> filteredObjects = compileLikes ? filterRepeatObjects(dartObjects) : dartObjects;
+        List<DartObject> filteredObjects = dartObjects;
+
+        //想同就
+        if (compileEqualFlag) {
+            filteredObjects = filterRepeatObjectsByEqual(dartObjects);
+        }
+
+        //包含就
+        if (compileContainFlag) {
+            filteredObjects = filterRepeatObjectsByContain(dartObjects);
+        }
 
         //转换为
         StringBuilder retBuffer = new StringBuilder();
@@ -325,7 +339,7 @@ public class DartJsonTool {
         return null;
     }
 
-    private static DartObject checkAContainSB(DartObject objectOne, DartObject objectTwo) {
+    private static DartObject checkAContainB(DartObject objectOne, DartObject objectTwo) {
         //判断对象一是否包含对象二
         boolean oneContainsTwo = true;
         for (int a = 0; a < objectTwo.getValues().size(); a++) {
@@ -335,7 +349,7 @@ public class DartJsonTool {
                     containValue = true;
                 }
             }
-            if (containValue == false) {
+            if (!containValue) {
                 oneContainsTwo = false;
                 break;
             }
@@ -347,18 +361,34 @@ public class DartJsonTool {
     }
 
 
+    private static boolean checkAEqualsB(DartObject objectOne, DartObject objectTwo) {
+        //判断对象一是否等于对象二
+        if (objectTwo.getValues().size() == objectOne.getValues().size()) {
+            for (int a = 0; a < objectTwo.getValues().size(); a++) {
+                boolean containValue = false;
+                for (int b = 0; b < objectOne.getValues().size(); b++) {
+                    if (isValueContain(objectOne.getValues().get(b), objectTwo.getValues().get(a))) {
+                        containValue = true;
+                    }
+                }
+                if(!containValue){
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+
     //判断是否已经包含了重复的model,如果重复了，返回集合更大更多的objects
     private static DartObject checkRepeatModel(DartObject objectOne, DartObject objectTwo) {
 
-        if (objectOne.getName().equals(objectTwo.getName())) {
-            System.out.println("wqeqwe");
-        }
-
-        DartObject retOne = checkAContainSB(objectOne, objectTwo);
+        DartObject retOne = checkAContainB(objectOne, objectTwo);
         if (retOne != null) {
             return retOne;
         }
-        return checkAContainSB(objectTwo, objectOne);
+        return checkAContainB(objectTwo, objectOne);
     }
 
 
@@ -380,7 +410,7 @@ public class DartJsonTool {
     }
 
     //进行筛选，剔除掉重复的类型对象，保证最后创建dart文件的时候不出现相同的类
-    private static List<DartObject> filterRepeatObjects(List<DartObject> objects) {
+    private static List<DartObject> filterRepeatObjectsByContain(List<DartObject> objects) {
 
         //复制的
         List<DartObject> copyArrayOne = new ArrayList<DartObject>(objects);
@@ -417,6 +447,46 @@ public class DartJsonTool {
         return copyArrayTwo;
 
     }
+
+
+    //进行筛选，剔除掉重复的类型对象，保证最后创建dart文件的时候不出现相同的类
+    private static List<DartObject> filterRepeatObjectsByEqual(List<DartObject> objects) {
+        //复制的
+        List<DartObject> copyArrayOne = new ArrayList<>(objects);
+        //复制的
+        List<DartObject> copyArrayTwo = new ArrayList<>(objects);
+        //遍历
+        for (int a = 0; a < copyArrayOne.size(); a++) {
+            //遍历
+            for (int b = 0; b < copyArrayTwo.size(); b++) {
+                //同一位置不判断
+                if (copyArrayOne.get(a) != copyArrayTwo.get(b)) {
+                    //如果第一个包含了第二个
+                    if (checkAEqualsB(copyArrayOne.get(a), copyArrayTwo.get(b))) {
+                        //处理掉B中的重复数据,将类型改掉
+                        for (DartObject dartObject : copyArrayOne) {
+                            for (int j = 0; j < dartObject.getValues().size(); j++) {
+                                if (dartObject.getValues().get(j).getTypeClass() == copyArrayTwo.get(b)) {
+                                    dartObject.getValues().get(j).setTypeClass(copyArrayOne.get(a));
+                                }
+                            }
+                        }
+                        //移除B,因为对象实际没有进行复制，b列表中value对象的typeClass同样被替换掉了
+                        copyArrayOne.remove(b);
+                        copyArrayTwo.remove(b);
+                        //减少AB的值
+                        b--;
+                        a--;
+                        break;
+                    }
+                }
+            }
+        }
+        //移除所有的之前，需要先将value中引用的重复类替换掉才行
+        return copyArrayTwo;
+
+    }
+
 
     //转换
     private static String dartClassToString(DartObject dartObject, SafetyType safetyType) {

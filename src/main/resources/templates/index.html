@@ -66,7 +66,8 @@
                                 <div class="layui-col-sm12 layui-col-md12 layui-col-lg6">
                                     <div class="layui-form" lay-filter="component-form-element">
                                         <input type="checkbox" name="nullSafety" value="true" title="数据非空" checked>
-                                        <input type="checkbox" name="compile" value="true" title="合并嵌套" checked>
+                                        <input type="checkbox" name="compileEqual" value="true" title="合并相等" checked>
+                                        <input type="checkbox" name="compile" value="false" title="合并包含" >
                                     </div>
                                 </div>
 
@@ -260,7 +261,9 @@
             //取得空安全设置
             var nullSafety = $('input[name=nullSafety]:checked').val();
 
-            var compileFlag = $('input[name=compile]:checked').val();
+            var compileContainFlag = $('input[name=compile]:checked').val();
+
+            var compileEqualFlag = $('input[name=compileEqual]:checked').val();
 
             //请求后台接口
             $.ajax({
@@ -270,7 +273,8 @@
                     jsonStr: json.replace(/[\t\n]/g, ''),
                     className: className,
                     nullSafety: nullSafety,
-                    compileFlag: compileFlag
+                    compileContainFlag: compileContainFlag,
+                    compileEqualFlag: compileEqualFlag,
                 },
                 beforeSend: function () {
                     this.layerIndex = layer.load(0, {shade: [0.5, '#393D49']});
